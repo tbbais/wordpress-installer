@@ -4,7 +4,7 @@
   "displayName": "wordpress-installer",
   "description": "Install WordPress for VSCode",
   "version": "1.0.0",
-  "license": "Apache License Version 2.0",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.94.0"
   },
