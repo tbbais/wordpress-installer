@@ -1,13 +1,19 @@
 {
   "name": "wordpress-installer",
   "publisher": "tbbais",
-  "displayName": "wordpress-installer",
+  "displayName": "Wordpress Installer",
   "description": "Install WordPress for VSCode",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.94.0"
   },
+  "keywords": [
+		"wordpress",
+    "installer",
+    "tool"
+	],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tbbais/wordpress-installer.git"
