@@ -7,6 +7,10 @@
   "engines": {
     "vscode": "^1.94.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tbbais/wordpress-installer.git"
+  },
   "categories": [
     "Other"
   ],
