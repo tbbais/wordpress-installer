@@ -1,5 +1,6 @@
 {
   "name": "wordpress-installer",
+  "publisher": "tbbais",
   "displayName": "wordpress-installer",
   "description": "Install WordPress for VSCode",
   "version": "1.0.0",
