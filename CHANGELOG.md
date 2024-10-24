@@ -21,3 +21,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - added function to make a custom theme
 - added function to create git repo in custom theme
+
+## [1.2.0]
+
+- added function to git clone a template into the theme

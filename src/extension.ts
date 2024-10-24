@@ -204,10 +204,28 @@ async function postConfigPrompts(outputDir: string) {
             } else {
                 vscode.window.showWarningMessage(`Theme folder '${themeName}' already exists.`);
             }
+
+            // Prompt if the user wants to clone a theme template from a Git repository
+            const cloneTheme = await vscode.window.showQuickPick(['Yes', 'No'], {
+                placeHolder: 'Do you want to clone a theme template from a Git repository?',
+            });
+
+            if (cloneTheme === 'Yes') {
+                const repoUrl = await vscode.window.showInputBox({
+                    prompt: 'Enter the Git repository URL of the theme template',
+                    placeHolder: 'https://github.com/example/theme-template.git',
+                    ignoreFocusOut: true
+                });
+
+                if (repoUrl) {
+                    vscode.window.showInformationMessage(`Cloning theme from ${repoUrl}...`);
+                    cloneThemeTemplate(repoUrl, themeDir);
+                }
+            }
         }
     }
 
-    // Prompt if the user wants to initialize Git, and use the theme directory if created
+    // Prompt if the user wants to initialize Git in the theme directory
     const initializeGit = await vscode.window.showQuickPick(['Yes', 'No'], {
         placeHolder: 'Do you want to initialize a Git repository inside the theme folder?',
     });
@@ -218,6 +236,17 @@ async function postConfigPrompts(outputDir: string) {
         vscode.window.showWarningMessage('No theme folder was created, skipping Git initialization.');
     }
 }
+
+function cloneThemeTemplate(repoUrl: string, themeDir: string) {
+    exec(`git clone ${repoUrl} ${themeDir}`, (error, stdout, stderr) => {
+        if (error) {
+            vscode.window.showErrorMessage(`Error cloning theme template: ${stderr}`);
+        } else {
+            vscode.window.showInformationMessage('Theme template cloned successfully.');
+        }
+    });
+}
+
 
 
 // Function to initialize Git
