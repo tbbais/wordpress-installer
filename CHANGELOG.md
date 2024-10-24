@@ -4,6 +4,20 @@ All notable changes to the "wordpress-installer" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [1.0.0]
 
 - Initial release
+
+## [1.0.1]
+
+- added context to package.json
+
+## [1.0.2]
+
+- added context to package.json
+- added a logo
+
+## [1.1.0]
+
+- added function to make a custom theme
+- added function to create git repo in custom theme

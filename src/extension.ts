@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as https from 'https';
-import { createWriteStream, createReadStream, readFileSync, writeFileSync, existsSync, unlink } from 'fs';
+import { createWriteStream, createReadStream, readFileSync, writeFileSync, existsSync, unlink, mkdirSync } from 'fs';
 import * as path from 'path';
 import * as unzipper from 'unzipper';
+import { exec } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('wordpress-installer.installWordPress', () => {
@@ -54,9 +55,7 @@ function unzipWordPress(zipFilePath: string, outputDir: string) {
     vscode.window.showInformationMessage('Unzipping WordPress...');
 
     createReadStream(zipFilePath)
-        .pipe(
-            unzipper.Parse()  // Parse the zip file content
-        )
+        .pipe(unzipper.Parse())
         .on('entry', (entry: unzipper.Entry) => {
             const fileName = entry.path;
 
@@ -148,9 +147,7 @@ async function promptForConfig(outputDir: string) {
     }
 }
 
-
 function setupConfig(outputDir: string, dbName: string, dbUser: string, dbPassword: string) {
-    // Now the files are directly in the output directory, not in 'wordpress/' folder
     const sampleConfig = path.join(outputDir, 'wp-config-sample.php');
     const config = path.join(outputDir, 'wp-config.php');
 
@@ -169,43 +166,70 @@ function setupConfig(outputDir: string, dbName: string, dbUser: string, dbPasswo
         // Write the updated config file
         writeFileSync(config, configContent);
         vscode.window.showInformationMessage('wp-config.php created successfully.');
-    } catch (err) {
-        if (err instanceof Error) {
-            vscode.window.showErrorMessage(`Error setting up wp-config.php: ${err.message}`);
+
+        // After setting up config, prompt for theme creation and Git initialization
+        postConfigPrompts(outputDir);
+
+    } catch (error) {
+        if (error instanceof Error) {
+            vscode.window.showErrorMessage(`Error setting up wp-config.php: ${error.message}`);
         } else {
             vscode.window.showErrorMessage(`Unknown error occurred during wp-config.php setup.`);
         }
     }
+    
+}
 
-    // Step 4: Optionally set up the database
-    // setupDatabase(dbName, dbUser, dbPassword);
+// Function to prompt for theme creation and Git initialization
+async function postConfigPrompts(outputDir: string) {
+    let themeDir = '';
 
-    // Step 5: Open the installation page in the browser
-    // openInBrowser();
+    // Prompt if the user wants to create a theme folder
+    const createTheme = await vscode.window.showQuickPick(['Yes', 'No'], {
+        placeHolder: 'Do you want to create a custom theme folder?',
+    });
+
+    if (createTheme === 'Yes') {
+        const themeName = await vscode.window.showInputBox({
+            prompt: 'Enter a name for your theme',
+            placeHolder: 'e.g., my-theme',
+            ignoreFocusOut: true
+        });
+
+        if (themeName) {
+            themeDir = path.join(outputDir, 'wp-content', 'themes', themeName);
+            if (!existsSync(themeDir)) {
+                mkdirSync(themeDir, { recursive: true });
+                vscode.window.showInformationMessage(`Theme folder '${themeName}' created successfully.`);
+            } else {
+                vscode.window.showWarningMessage(`Theme folder '${themeName}' already exists.`);
+            }
+        }
+    }
+
+    // Prompt if the user wants to initialize Git, and use the theme directory if created
+    const initializeGit = await vscode.window.showQuickPick(['Yes', 'No'], {
+        placeHolder: 'Do you want to initialize a Git repository inside the theme folder?',
+    });
+
+    if (initializeGit === 'Yes' && themeDir) {
+        initializeGitRepo(themeDir);  // Initialize Git inside the theme folder
+    } else if (initializeGit === 'Yes' && !themeDir) {
+        vscode.window.showWarningMessage('No theme folder was created, skipping Git initialization.');
+    }
 }
 
 
-// function setupDatabase(dbName: string, dbUser: string, dbPassword: string) {
-//     vscode.window.showInformationMessage('Setting up the database...');
+// Function to initialize Git
+function initializeGitRepo(themeDir: string) {
+    exec('git init', { cwd: themeDir }, (error, stdout, stderr) => {
+        if (error) {
+            vscode.window.showErrorMessage(`Error initializing Git in theme folder: ${stderr}`);
+        } else {
+            vscode.window.showInformationMessage('Git repository initialized successfully inside the theme folder.');
+        }
+    });
+}
 
-//     const createDbCommand = `mysql -u ${dbUser} -p${dbPassword} -e "CREATE DATABASE IF NOT EXISTS ${dbName};"`;
-//     exec(createDbCommand, (error, stdout, stderr) => {
-//         if (error) {
-//             vscode.window.showErrorMessage(`Error setting up the database: ${stderr}`);
-//         } else {
-//             vscode.window.showInformationMessage('Database setup successfully.');
-//         }
-//     });
-// }
-
-// async function openInBrowser() {
-//     const url = 'http://localhost/wordpress';  // Modify this based on where WordPress is installed
-    
-//     // Dynamically import the 'open' module
-//     const open = (await import('open')).default;
-    
-//     open(url);
-//     vscode.window.showInformationMessage('Opening WordPress installation in your browser...');
-// }
 
 export function deactivate() {}
