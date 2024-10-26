@@ -238,7 +238,10 @@ async function postConfigPrompts(outputDir: string) {
 }
 
 function cloneThemeTemplate(repoUrl: string, themeDir: string) {
-    exec(`git clone ${repoUrl} ${themeDir}`, (error, stdout, stderr) => {
+    // Enclose repoUrl and themeDir in quotes to handle any spaces in paths
+    const command = `git clone "${repoUrl}" "${themeDir}"`;
+
+    exec(command, (error, stdout, stderr) => {
         if (error) {
             vscode.window.showErrorMessage(`Error cloning theme template: ${stderr}`);
         } else {
@@ -246,6 +249,7 @@ function cloneThemeTemplate(repoUrl: string, themeDir: string) {
         }
     });
 }
+
 
 
 

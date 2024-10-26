@@ -25,3 +25,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [1.2.0]
 
 - added function to git clone a template into the theme
+
+## [1.2.1]
+
+- Enclose repoUrl and themeDir in quotes to handle any spaces in paths
