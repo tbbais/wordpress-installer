@@ -143,7 +143,7 @@ async function promptForConfig(outputDir) {
             prompt: 'Enter Database Password',
             placeHolder: 'e.g., password123',
             ignoreFocusOut: true,
-            password: true // This masks the input
+            password: true
         });
         if (!dbPassword) {
             vscode.window.showErrorMessage('Database password is required.');
@@ -240,14 +240,23 @@ async function postConfigPrompts(outputDir) {
     }
 }
 function cloneThemeTemplate(repoUrl, themeDir) {
-    // Enclose repoUrl and themeDir in quotes to handle any spaces in paths
-    const command = `git clone "${repoUrl}" "${themeDir}"`;
-    (0, child_process_1.exec)(command, (error, stdout, stderr) => {
-        if (error) {
-            vscode.window.showErrorMessage(`Error cloning theme template: ${stderr}`);
+    const gitClone = (0, child_process_1.spawn)('git', ['clone', repoUrl, themeDir]);
+    gitClone.stdout.on('data', (data) => {
+        // Log standard messages in VSCode without showing them as errors
+        vscode.window.showInformationMessage(`Cloning into theme folder: ${data}`);
+    });
+    gitClone.stderr.on('data', (data) => {
+        // Only show actual error messages in the VSCode error message output
+        if (data.toString().toLowerCase().includes("error") || data.toString().includes("fatal")) {
+            vscode.window.showErrorMessage(`Error cloning theme template: ${data}`);
+        }
+    });
+    gitClone.on('close', (code) => {
+        if (code === 0) {
+            vscode.window.showInformationMessage('Theme template cloned successfully.');
         }
         else {
-            vscode.window.showInformationMessage('Theme template cloned successfully.');
+            vscode.window.showErrorMessage(`Git clone process exited with code ${code}`);
         }
     });
 }
